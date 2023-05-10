@@ -7,21 +7,21 @@
 * Idea of main.cu: verify coalescing behavior at nvlink level. if coalescing happens, how does coalescing happens? what is the size?
 */
 
-#include <vector>
-#include <cuda_profiler_api.h> // For cudaProfilerStart() and cudaProfilerStop()
-#include <cstdio>
-#include <string>
-#include <thrust/device_vector.h>
-#include <fstream>
-#include <cupti_profiler.h>
-#include <time.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <stdio.h>
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
-#include <stdlib.h>
-#include "kernel.cu"
+// #include <vector>
+// #include <cuda_profiler_api.h> // For cudaProfilerStart() and cudaProfilerStop()
+// #include <cstdio>
+// #include <string>
+// #include <thrust/device_vector.h>
+// #include <fstream>
+// #include <cupti_profiler.h>
+// #include <time.h>
+// #include <sys/time.h>
+// #include <unistd.h>
+// #include <stdio.h>
+// #include "cuda_runtime.h"
+// #include "device_launch_parameters.h"
+// #include <stdlib.h>
+// #include "kernel.cu"
 
 
 

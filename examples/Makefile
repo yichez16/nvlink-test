@@ -13,6 +13,7 @@ LIBS = -lcuda -L$(CUPTI_PATH)/lib64 -lcupti
 main: main.cu	
 	# nvcc $(CXXARGS) $(INCLUDES) $(LIBS) main.cu -o main
 	nvcc -std=c++17 -o main-l1 main.cu -O3 -Xptxas="-dlcm=ca"
+	
     nvcc -std=c++17 -o main-l2 main.cu -O3 -Xptxas="-dlcm=cg"
 
 
