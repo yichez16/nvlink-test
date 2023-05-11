@@ -33,7 +33,7 @@ __global__ void copyKernel_single(int* local, int* remote, int threadID)
     }
     clock_t stopClock = clock();
     clock_t elapsedTime = stopClock - startClock;
-    printf("ThreadID: %d,Elapsed Time: %llu cycles\n", threadID, elapsedTime);
+    printf("%llu\n", elapsedTime);
 
 
 }
