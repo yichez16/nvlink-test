@@ -65,13 +65,13 @@ int main(int argc, char **argv)
     devArrayLocal[0] = devArrayRemote[0];
     clock_t stopClock = clock();
     clock_t elapsedTime = stopClock - startClock;
-    printf("%llu\n", elapsedTime);
+    printf("%d\n", elapsedTime);
 
     startClock = clock();
     devArrayLocal[secondThread] = devArrayRemote[secondThread];
     stopClock = clock();
     elapsedTime = stopClock - startClock;
-    printf("%llu\n", elapsedTime);
+    printf("%d\n", elapsedTime);
 
 
     // Copy devArrayLocal back to hostArrayLocal on the local GPU 0
