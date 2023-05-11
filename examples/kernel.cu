@@ -29,10 +29,8 @@ __global__ void copyKernel_single(int* local, int* remote, int threadID)
     clock_t startClock = clock();
     // if (tid == threadID)
     // {
-    int value = remote[threadID];
-    value += 1;
-    local[threadID] = value;
-            // }
+        local[threadID] = remote[threadID];
+    // }
     clock_t stopClock = clock();
     clock_t elapsedTime = stopClock - startClock;
     printf("%llu\n", elapsedTime);
