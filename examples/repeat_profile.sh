@@ -30,7 +30,7 @@
 for i in $(seq 1 100);
 do
     # nvprof --profile-from-start off --aggregate-mode off --devices 0 --csv -m nvlink_total_nratom_data_transmitted,nvlink_total_ratom_data_transmitted,nvlink_total_response_data_received,nvlink_user_nratom_data_transmitted,nvlink_user_ratom_data_transmitted,nvlink_user_response_data_received ./p2p_vecAdd $i &>> vecAdd.csv
-    ./main
+    ./main $i
 
 done
 

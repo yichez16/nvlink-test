@@ -9,6 +9,10 @@
 
 int main()
 {
+    using namespace std;
+    int secondThread;
+    secondThread = atoi(argv[1]);
+
     int* devArrayLocal;
     int* devArrayRemote;
     const int numElements = ARRAY_SIZE * sizeof(int);
@@ -54,7 +58,7 @@ int main()
     cudaSetDevice(0);
     cudaDeviceEnablePeerAccess(1, 0); 
     copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 0);
-    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 1);
+    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread);
     // copyKernel_two <<<1, 2>>>(devArrayLocal, devArrayRemote, 0, 1);
 
 
