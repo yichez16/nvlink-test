@@ -45,7 +45,12 @@ __global__ void copyKernel_two(int* local, int* remote, int threadID1, int threa
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     
     clock_t startClock = clock();
-    if (tid == threadID1 or tid ==threadID2 )
+    if (tid == threadID1)
+    {
+        local[tid] = remote[tid];
+    }
+
+        if (tid == threadID2)
     {
         local[tid] = remote[tid];
     }
