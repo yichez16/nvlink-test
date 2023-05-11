@@ -56,6 +56,6 @@ __global__ void copyKernel_two(int* local, int* remote, int threadID1, int threa
     // }
     clock_t stopClock = clock();
     clock_t elapsedTime = stopClock - startClock;
-    printf("ThreadID: %d,Elapsed Time: %llu cycles\n", threadID2, elapsedTime);
+    printf("%llu\n", elapsedTime);
 
 }
