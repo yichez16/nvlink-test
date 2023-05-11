@@ -1,105 +1,80 @@
-/*
-* Author: Yicheng Zhang
-* Association: UC Riverside
-* Date: May 9, 2023
-*
-* Description: 
-* Idea of main.cu: verify coalescing behavior at nvlink level. if coalescing happens, how does coalescing happens? what is the size?
-*/
-
-// #include <vector>
-// #include <cuda_profiler_api.h> // For cudaProfilerStart() and cudaProfilerStop()
-// #include <cstdio>
-// #include <string>
-// #include <thrust/device_vector.h>
-// #include <fstream>
-// #include <cupti_profiler.h>
-// #include <time.h>
-// #include <sys/time.h>
-// #include <unistd.h>
-// #include <stdio.h>
-// #include "cuda_runtime.h"
-// #include "device_launch_parameters.h"
-// #include <stdlib.h>
-// #include "kernel.cu"
-
-
-
-#include <algorithm>
-#include <chrono>
-#include <cstdlib>
 #include <cuda_runtime.h>
 #include <iostream>
-#include <random>
-#include <vector>
+#include "kernel.cu"
+#include <stdio.h>
 
-#define N 1000000
+#define ARRAY_SIZE 1000000 // l2 cache size = 4MB with 128 Bytes cache line size
 
-__global__ void chase(int *data, int size) {
-  int d = blockIdx.x * blockDim.x + threadIdx.x;
-  for (int i = 0; i < N; i++) {
-    for (int k = 0; k < 128; k++) {
-      d = data[d];
+
+
+int main()
+{
+    int* devArrayLocal;
+    int* devArrayRemote;
+    const int numElements = ARRAY_SIZE * sizeof(int);
+    int hostArrayLocal[ARRAY_SIZE];
+    int hostArrayRemote[ARRAY_SIZE];
+
+    // Initialize hostArrayLocal and hostArrayRemote with sequential values
+    for (int i = 0; i < ARRAY_SIZE; i++)
+    {
+        hostArrayLocal[i] = i;
+        hostArrayRemote[i] = i+1;
     }
-  }
 
-  data[0] = d;
-}
+    // Allocate memory for the arrays on the local GPU 0
+    cudaSetDevice(0);
+    cudaMalloc(&devArrayLocal, numElements);
 
-/* simple class for a pseudo-random generator producing
-   uniformely distributed integers */
-class UniformIntDistribution {
-public:
-  UniformIntDistribution() : engine(std::random_device()()) {}
-  /* return number in the range of [0..upper_limit) */
-  unsigned int draw(unsigned int upper_limit) {
-    return std::uniform_int_distribution<unsigned int>(0,
-                                                       upper_limit - 1)(engine);
-  }
+    // Allocate memory for the array on the remote GPU 1
+    cudaSetDevice(1);
+    cudaMalloc(&devArrayRemote, numElements);
 
-private:
-  std::mt19937 engine;
-};
+    // Copy hostArrayLocal to devArrayLocal on the local GPU 0
+    cudaSetDevice(0);
+    cudaMemcpy(devArrayLocal, hostArrayLocal, numElements, cudaMemcpyHostToDevice);
 
-/* create a cyclic pointer chain that covers all words
-   in a memory section of the given size in a randomized order */
-void create_random_chain(int **indices, int len) {
-  UniformIntDistribution uniform;
+    // Copy hostArrayRemote to devArrayRemote on the remote GPU 1
+    cudaSetDevice(1);
+    cudaMemcpy(devArrayRemote, hostArrayRemote, numElements, cudaMemcpyHostToDevice);
 
-  // shuffle indices
-  for (int i = 0; i < len; ++i) {
-    (*indices)[i] = i;
-  }
-  for (int i = 0; i < len - 1; ++i) {
-    int j = i + uniform.draw(len - i);
-    if (i != j) {
-      std::swap((*indices)[i], (*indices)[j]);
+    // Launch the kernel on the local GPU 0 to perform operations on the local array
+    cudaSetDevice(0);
+    arrayToL2Cache<<<1, 32>>>(devArrayLocal, ARRAY_SIZE);
+
+    // Launch the kernel on the remote GPU 1 to perform operations on the remote array
+    cudaSetDevice(1);
+    arrayToL2Cache<<<1, 32>>>(devArrayRemote, ARRAY_SIZE);
+
+    // Synchronize the local GPU 0 to ensure the kernel execution is completed
+    cudaSetDevice(0);
+    cudaDeviceSynchronize();
+
+    // Copy devArrayLocal back to hostArrayLocal on the local GPU 0
+    cudaMemcpy(hostArrayLocal, devArrayLocal, numElements, cudaMemcpyDeviceToHost);
+
+    // Copy devArrayRemote back to hostArrayRemote on the remote GPU 1
+    cudaSetDevice(1);
+    cudaMemcpy(hostArrayRemote, devArrayRemote, numElements, cudaMemcpyDeviceToHost);
+
+    // Print the modified values from both local and remote arrays
+    std::cout << "Local Array: ";
+    for (int i = 0; i < 10; i++)
+    {
+        std::cout << hostArrayLocal[i] << " ";
     }
-  }
-}
+    std::cout << std::endl;
 
-int main(int argc, char **argv) {
-  if (argc < 2) {
-    std::cout << "./main [working set size]" << std::endl;
-    exit(1);
-  }
+    std::cout << "Remote Array: ";
+    for (int i = 0; i < 10; i++)
+    {
+        std::cout << hostArrayRemote[i] << " ";
+    }
+    std::cout << std::endl;
 
-  int working_set_num_size = std::stoi(argv[1]);
-  int working_set_num = working_set_num_size / sizeof(int);
+    // Free the allocated memory
+    cudaFree(devArrayRemote);
+    cudaFree(devArrayLocal);
 
-  int *data = new int[working_set_num];
-  int **data_p = &data;
-
-  create_random_chain(data_p, working_set_num);
-
-  int *d_data;
-  cudaMalloc(&d_data, working_set_num_size);
-  cudaMemcpy(d_data, data, working_set_num_size, cudaMemcpyHostToDevice);
-
-  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-  chase<<<1, 1>>>(d_data, working_set_num);
-  cudaDeviceSynchronize();
-  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
-  std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << std::endl;
+    return 0;
 }
