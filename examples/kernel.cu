@@ -21,11 +21,18 @@ __global__ void arrayToL2Cache(int* array, int size)
 }
 
 // copy data from remote to local
-__global__ void copyKernel(int* local, int* remote, int size)
+__global__ void copyKernel_single(int* local, int* remote, int threadID)
 {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    if (tid < size)
+    clock_t startClock = clock();
+
+
+    if (tid == threadID)
     {
         local[tid] = remote[tid];
     }
+    clock_t stopClock = clock();
+    clock_t elapsedTime = stopClock - startClock;
+    printf("ThreadID: %,Elapsed Time: %llu cycles\n", tid, elapsedTime);
+
 }

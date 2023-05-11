@@ -50,12 +50,24 @@ int main()
     cudaSetDevice(0);
     cudaDeviceSynchronize();
 
+    // Make sure local gpu 0 can acess remote gpu 1
+    cudaSetDevice(0);
+    cudaDeviceEnablePeerAccess(1, 0); 
+    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 0);
+    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 1);
+
+
+
+
     // Copy devArrayLocal back to hostArrayLocal on the local GPU 0
     cudaMemcpy(hostArrayLocal, devArrayLocal, numElements, cudaMemcpyDeviceToHost);
 
     // Copy devArrayRemote back to hostArrayRemote on the remote GPU 1
     cudaSetDevice(1);
     cudaMemcpy(hostArrayRemote, devArrayRemote, numElements, cudaMemcpyDeviceToHost);
+
+
+
 
     // Print the modified values from both local and remote arrays
     std::cout << "Local Array: ";
