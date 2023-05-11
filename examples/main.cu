@@ -57,21 +57,11 @@ int main(int argc, char **argv)
     // Make sure local gpu 0 can acess remote gpu 1
     cudaSetDevice(0);
     cudaDeviceEnablePeerAccess(1, 0); 
-    // copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 0);
-    // copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread);
+    copyKernel_single <<<1, 32>>>(devArrayLocal, devArrayRemote, 0);
+    copyKernel_single <<<1, 32>>>(devArrayLocal, devArrayRemote, secondThread);
     // copyKernel_two <<<1, 2>>>(devArrayLocal, devArrayRemote, 0, 1);
 
-    clock_t startClock = clock();
-    devArrayLocal[0] = devArrayRemote[0];
-    clock_t stopClock = clock();
-    clock_t elapsedTime = stopClock - startClock;
-    printf("%ld\n", elapsedTime);
 
-    startClock = clock();
-    devArrayLocal[secondThread] = devArrayRemote[secondThread];
-    stopClock = clock();
-    elapsedTime = stopClock - startClock;
-    printf("%ld\n", elapsedTime);
 
 
     // Copy devArrayLocal back to hostArrayLocal on the local GPU 0
