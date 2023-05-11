@@ -71,19 +71,19 @@ int main()
 
 
     // Print the modified values from both local and remote arrays
-    std::cout << "Local Array: ";
-    for (int i = 0; i < 10; i++)
-    {
-        std::cout << hostArrayLocal[i] << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "Local Array: ";
+    // for (int i = 0; i < 10; i++)
+    // {
+    //     std::cout << hostArrayLocal[i] << " ";
+    // }
+    // std::cout << std::endl;
 
-    std::cout << "Remote Array: ";
-    for (int i = 0; i < 10; i++)
-    {
-        std::cout << hostArrayRemote[i] << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "Remote Array: ";
+    // for (int i = 0; i < 10; i++)
+    // {
+    //     std::cout << hostArrayRemote[i] << " ";
+    // }
+    // std::cout << std::endl;
 
     // Free the allocated memory
     cudaFree(devArrayRemote);
