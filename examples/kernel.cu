@@ -24,13 +24,13 @@ __global__ void arrayToL2Cache(int* array, int size)
 // One kernel only contains one thread.
 __global__ void copyKernel_single(int* local, int* remote, int threadID)
 {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    // int tid = threadIdx.x + blockIdx.x * blockDim.x;
     
     clock_t startClock = clock();
-    if (tid == threadID)
-    {
-        local[tid] = remote[tid];
-    }
+    // if (tid == threadID)
+    // {
+        local[threadID] = remote[threadID];
+    // }
     clock_t stopClock = clock();
     clock_t elapsedTime = stopClock - startClock;
     printf("%llu\n", elapsedTime);
