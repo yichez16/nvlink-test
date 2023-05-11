@@ -59,9 +59,9 @@ int main(int argc, char **argv)
     cudaDeviceEnablePeerAccess(1, 0); 
     copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 0);
     copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread);
-    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread+1);
-    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread+32);
-    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread+10000);
+    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread*32);
+    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread*64);
+    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread*96);
     // copyKernel_two <<<1, 2>>>(devArrayLocal, devArrayRemote, 0, 1);
 
 
