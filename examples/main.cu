@@ -67,10 +67,10 @@ int main(int argc, char **argv)
     clock_t elapsedTime = stopClock - startClock;
     printf("%llu\n", elapsedTime);
 
-    clock_t startClock = clock();
+    startClock = clock();
     devArrayLocal[secondThread] = devArrayRemote[secondThread];
-    clock_t stopClock = clock();
-    clock_t elapsedTime = stopClock - startClock;
+    stopClock = clock();
+    elapsedTime = stopClock - startClock;
     printf("%llu\n", elapsedTime);
 
 
