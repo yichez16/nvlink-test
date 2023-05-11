@@ -14,8 +14,18 @@ __global__ void arrayToL2Cache(int* array, int size)
     if (tid < size)
     {
         // Access and perform dummy operations on the array elements
-        int value = array[i];
+        int value = array[tid];
         value *= 2;
-        array[i] = value;
+        array[tid] = value;
+    }
+}
+
+// copy data from remote to local
+__global__ void copyKernel(int* local, int* remote, int size)
+{
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    if (tid < size)
+    {
+        local[tid] = remote[tid];
     }
 }
