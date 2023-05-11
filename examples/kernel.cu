@@ -50,7 +50,7 @@ __global__ void copyKernel_two(int* local, int* remote, int threadID1, int threa
         local[tid] = remote[tid];
     }
 
-        if (tid == threadID2)
+    if (tid == threadID2)
     {
         local[tid] = remote[tid];
     }
