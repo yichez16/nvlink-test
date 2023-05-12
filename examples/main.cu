@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 
 
     copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 0);
-    // copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondAddr);
+    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondAddr);
     // copyKernel_two <<<1, 2>>>(devArrayLocal, devArrayRemote, 0, 1);
 
 
