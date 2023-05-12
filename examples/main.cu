@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         hostArrayLocal[i] = i;
-        hostArrayRemote[i] = i+1;
+        hostArrayRemote[i] = i+100;
     }
 
     // Allocate memory for the arrays on the local GPU 0
