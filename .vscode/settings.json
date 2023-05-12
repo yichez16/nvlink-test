@@ -67,6 +67,10 @@
         "bit": "cpp",
         "ios": "cpp",
         "locale": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "__hash_table": "cpp",
+        "deque": "cpp",
+        "queue": "cpp",
+        "set": "cpp"
     }
 }

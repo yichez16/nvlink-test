@@ -55,16 +55,19 @@ int main(int argc, char **argv)
     // cudaSetDevice(0);
     // cudaDeviceSynchronize();
 
-    // Start profiler // nvprof --profile-from-start off
-    cudaProfilerStart(); 
-
     // Make sure local gpu 0 can acess remote gpu 1
     cudaSetDevice(0);
     cudaDeviceEnablePeerAccess(1, 0); 
 
 
-    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 0);
-    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondAddr);
+    // Start profiler // nvprof --profile-from-start off
+    cudaProfilerStart(); 
+
+
+
+    cudaMemcpyPeer(devArrayRemote, 1, devArrayLocal, 0, secondAddr);    
+    // copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 0);
+    // copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondAddr);
     // copyKernel_two <<<1, 2>>>(devArrayLocal, devArrayRemote, 0, 1);
 
 
