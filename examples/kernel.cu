@@ -59,3 +59,10 @@ __global__ void copyKernel_two(int* local, int* remote, int threadID1, int threa
     printf("%llu\n", elapsedTime);
 
 }
+
+void
+initVec(int *vec, int n, int value)
+{
+    for (int i = 0; i < n; i++)
+        vec[i] = value;
+}

@@ -1,109 +1,151 @@
-#include <cuda_runtime.h>
-#include <iostream>
-#include "kernel.cu"
-#include <stdio.h>
+/*
+* Author: Yicheng Zhang
+* Association: UC Riverside
+* Date: May 1, 2023
+*
+* Description: 
+* Idea of p2p.cu: copy mem from remote gpu to local gpu
+// Two cases:
+// Case 1: using cudaMemcpyPeer() to copy d_B to local GPU. d_A on local GPU, d_B on remote GPU 
+// Case 2: using vecAdd kernel to copy d_B to local GPU. d_A and d_C on local GPU, d_B on remote GPU
+* The value of d_A, d_B, d_C vector are set to be 1, 2 and 100.
+*/
+
+#include <vector>
 #include <cuda_profiler_api.h> // For cudaProfilerStart() and cudaProfilerStop()
+#include <cstdio>
+#include <string>
+#include <thrust/device_vector.h>
+#include <fstream>
+#include <cupti_profiler.h>
+#include <time.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <stdio.h>
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+#include <stdlib.h>
+#include "kernel.cu"
 
-#define ARRAY_SIZE 10000 // l2 cache size = 4MB with 128 Bytes cache line size
 
 
 
-int main(int argc, char **argv)
-{
+ 
+int main(int argc, char **argv) {
+
     using namespace std;
-    int secondAddr;
-    secondAddr = atoi(argv[1]);
+    // int numGPUs;
 
-    int* devArrayLocal;
-    int* devArrayRemote;
-    const int numElements = ARRAY_SIZE * sizeof(int);
-    int hostArrayLocal[ARRAY_SIZE];
-    int hostArrayRemote[ARRAY_SIZE];
+    int src=0; 
+    int det=1;
+    int sizeElement;
+    int *h_A, *h_B, *h_C;
+    int *d_A, *d_B, *d_C;
 
-    // Initialize hostArrayLocal and hostArrayRemote with sequential values
-    for (int i = 0; i < ARRAY_SIZE; i++)
-    {
-        hostArrayLocal[i] = i;
-        hostArrayRemote[i] = i+100;
-    }
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
 
-    // Allocate memory for the arrays on the local GPU 0
-    cudaSetDevice(0);
-    cudaMalloc(&devArrayLocal, numElements);
+    struct timeval t1, t2;
 
-    // Allocate memory for the array on the remote GPU 1
-    cudaSetDevice(1);
-    cudaMalloc(&devArrayRemote, numElements);
 
-    // Copy hostArrayLocal to devArrayLocal on the local GPU 0
-    cudaSetDevice(0);
-    cudaMemcpy(devArrayLocal, hostArrayLocal, numElements, cudaMemcpyHostToDevice);
+    sizeElement = atoi(argv[1]);
+    printf("%d\n", sizeElement);
 
-    // Copy hostArrayRemote to devArrayRemote on the remote GPU 1
-    cudaSetDevice(1);
-    cudaMemcpy(devArrayRemote, hostArrayRemote, numElements, cudaMemcpyHostToDevice);
+    size_t size = sizeElement * sizeof(int);
 
-    // Launch the kernel on the local GPU 0 to perform operations on the local array
-    cudaSetDevice(0);
-    arrayToL2Cache<<<1, 1>>>(devArrayLocal, ARRAY_SIZE);
 
-    // Launch the kernel on the remote GPU 1 to perform operations on the remote array
-    cudaSetDevice(1);
-    arrayToL2Cache<<<1, 1>>>(devArrayRemote, ARRAY_SIZE);
+    // Allocate input vectors h_A, h_B and h_C in host memory
+    h_A = (int*)malloc(size);
+    h_B = (int*)malloc(size);
+    h_C = (int*)malloc(size);
 
-    // Synchronize the local GPU 0 to ensure the kernel execution is completed
-    cudaSetDevice(0);
-    cudaDeviceSynchronize();
+    // Initialize input vectors
+    initVec(h_A, sizeElement, 1);
+    initVec(h_B, sizeElement, 2);
+    initVec(h_C, sizeElement, 100);
 
-    // Make sure local gpu 0 can acess remote gpu 1
-    cudaSetDevice(0);
-    cudaDeviceEnablePeerAccess(1, 0); 
+    // local GPU contains vec_A and vec_C
+    cudaSetDevice(src);
+    cudaMalloc((void**)&d_A, size);  
+    cudaMalloc((void**)&d_C, size);
 
+    // Copy vector A, C from host memory to device memory
+    cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_C, h_C, size, cudaMemcpyHostToDevice);
+
+
+    // remote GPU contains vec_B 
+    cudaSetDevice(det);
+    cudaMalloc((void**)&d_B, size);
+
+
+
+    // Copy vector B from host memory to device memory
+    cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
+
+    // Make sure local GPU have access to remote GPU
+    cudaSetDevice(src);
+    cudaDeviceEnablePeerAccess(det, 0);  
+
+    int blockSize = 128;
+    int gridSize = (sizeElement + blockSize - 1) / blockSize;
+
+    
+    // int threadsPerBlock = 256;
+    // int blocksPerGrid = (sizeElement + threadsPerBlock - 1) / threadsPerBlock;
+    
+
+    gettimeofday(&t1, 0);    
+    
 
     // Start profiler // nvprof --profile-from-start off
     cudaProfilerStart(); 
+    
+
+    
 
 
 
-    cudaMemcpyPeer(devArrayLocal, 0, devArrayRemote, 1, secondAddr);    
-    // copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 0);
-    // copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondAddr);
-    // copyKernel_two <<<1, 2>>>(devArrayLocal, devArrayRemote, 0, 1);
+    cudaMemcpyPeer(d_A, src, d_B, det, size);    
 
 
+    
     // Stop profiler
     cudaProfilerStop(); 
 
+    // Stop time record
+    // cudaEventRecord(stop);
+    gettimeofday(&t2, 0);
+
+    // cudaEventSynchronize(stop);
+    double milliseconds = (1000000.0*(t2.tv_sec-t1.tv_sec) + t2.tv_usec-t1.tv_usec)/1000.0;
 
 
-    // Copy devArrayLocal back to hostArrayLocal on the local GPU 0
-    cudaMemcpy(hostArrayLocal, devArrayLocal, numElements, cudaMemcpyDeviceToHost);
+    // Copy back to host memory 
 
-    // Copy devArrayRemote back to hostArrayRemote on the remote GPU 1
-    cudaSetDevice(1);
-    cudaMemcpy(hostArrayRemote, devArrayRemote, numElements, cudaMemcpyDeviceToHost);
-
+    cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost); // needed for kernel 
+    cudaMemcpy(h_B, d_B, size, cudaMemcpyDeviceToHost); // test peer2peer memcpy
+    cudaMemcpy(h_A, d_A, size, cudaMemcpyDeviceToHost); // 
 
 
+    double mb = sizeElement * sizeof(int) / (double)1e6;
+    printf("Size of data transfer (MB): %f\n", mb);
+    printf("Vector V_A (original value = 1): %d\n",h_A[sizeElement-1]);
+    printf("Vector V_B (original value = 2): %d\n",h_B[sizeElement-1]);
+    printf("Vector V_C (original value = 100): %d\n", h_C[sizeElement-1]);
+    printf("Time (ms): %f\n", milliseconds);
+    printf("Bandwith (MB/s): %f\n",mb*1e3/milliseconds);
 
-    // Print the modified values from both local and remote arrays
-    std::cout << "Local Array: ";
-    for (int i = 0; i < 10; i++)
-    {
-        std::cout << hostArrayLocal[i] << " ";
-    }
-    std::cout << std::endl;
+    cudaFree(d_A);
+    cudaFree(d_B);
+    cudaFree(d_C);
+    free(h_A);
+    free(h_B);
+    free(h_C);
 
-    std::cout << "Remote Array: ";
-    for (int i = 0; i < 10; i++)
-    {
-        std::cout << hostArrayRemote[i] << " ";
-    }
-    std::cout << std::endl;
+    exit(EXIT_SUCCESS);
+ }
+ 
+ 
 
-    // Free the allocated memory
-    cudaFree(devArrayRemote);
-    cudaFree(devArrayLocal);
-
-    return 0;
-}
