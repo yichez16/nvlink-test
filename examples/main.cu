@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 
 
 
-    cudaMemcpyPeer(devArrayRemote, 1, devArrayLocal, 0, secondAddr);    
+    cudaMemcpyPeer(devArrayLocal, 0, devArrayRemote, 1, secondAddr);    
     // copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 0);
     // copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondAddr);
     // copyKernel_two <<<1, 2>>>(devArrayLocal, devArrayRemote, 0, 1);
