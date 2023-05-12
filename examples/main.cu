@@ -2,6 +2,7 @@
 #include <iostream>
 #include "kernel.cu"
 #include <stdio.h>
+#include <cuda_profiler_api.h> // For cudaProfilerStart() and cudaProfilerStop()
 
 #define ARRAY_SIZE 1000000 // l2 cache size = 4MB with 128 Bytes cache line size
 
@@ -57,13 +58,16 @@ int main(int argc, char **argv)
     // Make sure local gpu 0 can acess remote gpu 1
     cudaSetDevice(0);
     cudaDeviceEnablePeerAccess(1, 0); 
+
+    // Start profiler // nvprof --profile-from-start off
+    cudaProfilerStart(); 
     copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 0);
-    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread);
-    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread*32);
-    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread*64);
-    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread*96);
+    // copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread);
     // copyKernel_two <<<1, 2>>>(devArrayLocal, devArrayRemote, 0, 1);
 
+    
+    // Stop profiler
+    cudaProfilerStop(); 
 
 
 
