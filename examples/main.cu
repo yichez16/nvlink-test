@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <cuda_profiler_api.h> // For cudaProfilerStart() and cudaProfilerStop()
 
-#define ARRAY_SIZE 1000000 // l2 cache size = 4MB with 128 Bytes cache line size
+#define ARRAY_SIZE 100000 // l2 cache size = 4MB with 128 Bytes cache line size
 
 
 
@@ -43,17 +43,17 @@ int main(int argc, char **argv)
     cudaSetDevice(1);
     cudaMemcpy(devArrayRemote, hostArrayRemote, numElements, cudaMemcpyHostToDevice);
 
-    // Launch the kernel on the local GPU 0 to perform operations on the local array
-    cudaSetDevice(0);
-    arrayToL2Cache<<<1, 32>>>(devArrayLocal, ARRAY_SIZE);
+    // // Launch the kernel on the local GPU 0 to perform operations on the local array
+    // cudaSetDevice(0);
+    // arrayToL2Cache<<<1, 1>>>(devArrayLocal, ARRAY_SIZE);
 
-    // Launch the kernel on the remote GPU 1 to perform operations on the remote array
-    cudaSetDevice(1);
-    arrayToL2Cache<<<1, 32>>>(devArrayRemote, ARRAY_SIZE);
+    // // Launch the kernel on the remote GPU 1 to perform operations on the remote array
+    // cudaSetDevice(1);
+    // arrayToL2Cache<<<1, 1>>>(devArrayRemote, ARRAY_SIZE);
 
-    // Synchronize the local GPU 0 to ensure the kernel execution is completed
-    cudaSetDevice(0);
-    cudaDeviceSynchronize();
+    // // Synchronize the local GPU 0 to ensure the kernel execution is completed
+    // cudaSetDevice(0);
+    // cudaDeviceSynchronize();
 
     // Start profiler // nvprof --profile-from-start off
     cudaProfilerStart(); 
