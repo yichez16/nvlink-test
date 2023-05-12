@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <cuda_profiler_api.h> // For cudaProfilerStart() and cudaProfilerStop()
 
-#define ARRAY_SIZE 10000000 // l2 cache size = 4MB with 128 Bytes cache line size
+#define ARRAY_SIZE 10000 // l2 cache size = 4MB with 128 Bytes cache line size
 
 
 
