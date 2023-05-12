@@ -11,8 +11,8 @@
 int main(int argc, char **argv)
 {
     using namespace std;
-    int secondThread;
-    secondThread = atoi(argv[1]);
+    int secondAddr;
+    secondAddr = atoi(argv[1]);
 
     int* devArrayLocal;
     int* devArrayRemote;
@@ -43,17 +43,17 @@ int main(int argc, char **argv)
     cudaSetDevice(1);
     cudaMemcpy(devArrayRemote, hostArrayRemote, numElements, cudaMemcpyHostToDevice);
 
-    // Launch the kernel on the local GPU 0 to perform operations on the local array
-    cudaSetDevice(0);
-    arrayToL2Cache<<<1, 1>>>(devArrayLocal, ARRAY_SIZE);
+    // // Launch the kernel on the local GPU 0 to perform operations on the local array
+    // cudaSetDevice(0);
+    // arrayToL2Cache<<<1, 1>>>(devArrayLocal, ARRAY_SIZE);
 
-    // Launch the kernel on the remote GPU 1 to perform operations on the remote array
-    cudaSetDevice(1);
-    arrayToL2Cache<<<1, 1>>>(devArrayRemote, ARRAY_SIZE);
+    // // Launch the kernel on the remote GPU 1 to perform operations on the remote array
+    // cudaSetDevice(1);
+    // arrayToL2Cache<<<1, 1>>>(devArrayRemote, ARRAY_SIZE);
 
-    // Synchronize the local GPU 0 to ensure the kernel execution is completed
-    cudaSetDevice(0);
-    cudaDeviceSynchronize();
+    // // Synchronize the local GPU 0 to ensure the kernel execution is completed
+    // cudaSetDevice(0);
+    // cudaDeviceSynchronize();
 
     // Start profiler // nvprof --profile-from-start off
     cudaProfilerStart(); 
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 
 
     copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, 0);
-    copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondThread);
+    // copyKernel_single <<<1, 1>>>(devArrayLocal, devArrayRemote, secondAddr);
     // copyKernel_two <<<1, 2>>>(devArrayLocal, devArrayRemote, 0, 1);
 
 
@@ -84,19 +84,19 @@ int main(int argc, char **argv)
 
 
     // Print the modified values from both local and remote arrays
-    // std::cout << "Local Array: ";
-    // for (int i = 0; i < 10; i++)
-    // {
-    //     std::cout << hostArrayLocal[i] << " ";
-    // }
-    // std::cout << std::endl;
+    std::cout << "Local Array: ";
+    for (int i = 0; i < 10; i++)
+    {
+        std::cout << hostArrayLocal[i] << " ";
+    }
+    std::cout << std::endl;
 
-    // std::cout << "Remote Array: ";
-    // for (int i = 0; i < 10; i++)
-    // {
-    //     std::cout << hostArrayRemote[i] << " ";
-    // }
-    // std::cout << std::endl;
+    std::cout << "Remote Array: ";
+    for (int i = 0; i < 10; i++)
+    {
+        std::cout << hostArrayRemote[i] << " ";
+    }
+    std::cout << std::endl;
 
     // Free the allocated memory
     cudaFree(devArrayRemote);
